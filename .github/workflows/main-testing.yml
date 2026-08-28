@@ -1,0 +1,38 @@
+name: main - testing
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # Selve modulen - alt unntatt dokumentasjon
+      - 'testing/**'
+      - '!testing/**.md'
+      # Fellesoppsett som påvirker byggingen av modulen
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'gradlew'
+      - 'gradlew.bat'
+      # Workflowene som bygger og publiserer modulen
+      - '.github/workflows/main-testing.yml'
+      - '.github/workflows/bygg-test-og-publiser-modul.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bygg-test-og-publiser:
+    name: testing
+    uses: ./.github/workflows/bygg-test-og-publiser-modul.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      modul: testing
