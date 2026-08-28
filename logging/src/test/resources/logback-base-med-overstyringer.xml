@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="TJENESTEKALL_LEVEL" value="TRACE"/>
+    <property name="ROOT_LOG_LEVEL" value="ERROR"/>
+
+    <include resource="no/nav/sykepenger/libs/logging/logback-base.xml"/>
+</configuration>

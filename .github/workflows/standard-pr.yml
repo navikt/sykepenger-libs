@@ -1,0 +1,32 @@
+name: PR - Bygg og test alt
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-pr${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bygg-og-test:
+    name: Bygg og test
+    uses: navikt/helse-sas-github-workflows/.github/workflows/bygg-og-test-med-gradle.yml@2f6844aa5e6852c64522681b3edb09c99445ad59 # v1.0.1
+    permissions:
+      contents: read
+
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high # Fail if introducing high or critical vulnerabilities

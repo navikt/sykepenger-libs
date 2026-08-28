@@ -1,0 +1,125 @@
+# sykepenger-libs - logging
+
+Felles loggoppsett og logghjelpere for sykepengetjenestene: et delt logback-oppsett som inkluderes fra classpath,
+Kotlin-funksjoner for å logge til både applikasjonslogg og Team Logs, og MDC-hjelpere.
+
+## Hvordan bruker jeg dette?
+
+### Installasjon i repoet
+
+```kotlin
+dependencies {
+    implementation("no.nav.sykepenger.libs:logging:<version>")
+}
+```
+
+#### Viktig!
+
+Dette loggebiblioteket sørger for riktig logback-oppsett for Team Logs, men annet oppsett for å nå Team Logs (f. eks i
+Nais-manifestet) må gjøres selv i hvert tjeneste.
+Se https://doc.nais.io/observability/logging/how-to/team-logs/#naisyaml-configuration .
+
+### logback.xml-oppsett
+
+Biblioteket har et felles logback-oppsett som det er meningen man skal inkludere i hver tjenestes `logback.xml`.
+Inkludert er rotoppsett, og oppsett mot Team Logs, som sørger for at MDC-felter (mulig personinfo) ikke lekker ut til
+OpenSearch, men bare kommer til Team Logs.
+
+Eksempel på en minimal, fullverdig `src/main/resources/logback.xml`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="no/nav/sykepenger/libs/logging/logback-base.xml"/>
+</configuration>
+```
+
+#### Parametere
+
+Deler av standardoppsettet er valgfritt overstyrbart ved å legge tilhørende `<property>` **før** `<include>`:
+
+| Parameter            | Standard | Beskrivelse                      |
+|----------------------|----------|----------------------------------|
+| `TJENESTEKALL_LEVEL` | `INFO`   | Nivå for `tjenestekall`-loggeren |
+| `ROOT_LOG_LEVEL`     | `INFO`   | Nivå for root-loggeren           |
+
+Eksempel:
+
+```xml
+
+<configuration>
+    <property name="TJENESTEKALL_LEVEL" value="DEBUG"/>
+    <include resource="no/nav/sykepenger/libs/logging/logback-base.xml"/>
+</configuration>
+```
+
+### MDC-oppsett
+
+Biblioteket legger opp til at man skal sette verdier som man ønsker å bruke for å korrelere loggmeldinger, gjerne på
+tvers av applikasjoner, på den såkalte [MDC'en](https://logback.qos.ch/manual/mdc.html). Alt som logges innenfor der
+MDC'en er satt opp vil ha med seg feltene fra MDC'en. Det er derfor bedre å bruke MDC-parametere enn å logge ting som
+vedtaksperiodeId etc. i hver enkelt loggmelding.
+
+_Merk!_ MDC-parametere ender bare opp i Team Logs, ettersom de kan inneholde persondata.
+
+Funksjonene heter `medMdc` (for synkron kode) og `coMedMdc` (for bruk i coroutines), og benyttes slik:
+
+```kotlin
+medMdc(MdcKey.VEDTAKSPERIODE_ID to vedtaksperiodeId.toString()) {
+    // ...
+    loggWarn("Feil vedtaksperiode")
+}
+```
+
+Loggingen som utføres både rett i blokken og nedover i kallhierarkiet vil da inneholde vedtaksperiodeId som felt.
+
+#### MdcKey
+
+Nøklene til MDC'en er ikke fritekst, men er definert i enumen
+[`MdcKey`](src/main/kotlin/no/nav/sykepenger/libs/logging/MdcKey.kt) — det felles settet med nøkler som kan settes på
+MDC'en av sykepengetjenestene. Fordi alle tjenestene henter nøklene fra samme sted, heter det samme begrepet det samme
+overalt, slik at et søk i Team Logs faktisk korrelerer treff på tvers av tjenestene.
+
+Se [KDoc-en i `MdcKey`](src/main/kotlin/no/nav/sykepenger/libs/logging/MdcKey.kt) for mer informasjon.
+
+### Logging
+
+Det finnes fem sett med funksjoner, ett for hvert loglevel:
+
+| Funksjon      | Loglevel |
+|---------------|----------|
+| `loggError()` | `ERROR`  |
+| `loggWarn()`  | `WARN`   |
+| `loggInfo()`  | `INFO`   |
+| `loggDebug()` | `DEBUG`  |
+| `loggTrace()` | `TRACE`  |
+
+Alle funksjonene er extension-funksjoner som importeres fra pakken `no.nav.sykepenger.libs.logging`, og som kan brukes
+på et hvilket som helst objekt. Typen man benytter funksjonen på blir til logger-navnet.
+
+Loggefunksjonene tar en melding og et valgfritt sett med key/value-par med detaljer. Alle meldinger logges til både
+OpenSearch og Team Logs, men det er kun den meldingen som går til team logs som har med detaljene. Dette forhindrer at
+persondata legger ut i OpenSearch, og tillater samtidig at den kan logges til Team Logs.
+
+Eksempel:
+
+```kotlin
+loggWarn(
+    "Fikk feil tilbake fra HentØnskeliste-tjenesten",
+    "httpStatusCode" to status.toString(),
+    "responseBody" to responseBody,
+)
+```
+
+OpenSearch får `Fikk feil tilbake fra HentØnskeliste-tjenesten`, mens Team Logs får
+`Fikk feil tilbake fra HentØnskeliste-tjenesten - httpStatusCode: "…" responseBody: "…"`.
+
+Detaljverdiene er `String?`, slik at det er tydelig hva som faktisk havner i loggen — konverter selv med `toString()`
+der det trengs. `null` skrives som `null`, uten anførselstegn.
+
+Alle funksjonene har en variant som tar en `Throwable` som andre argument. Stacktracen følger bare med til Team Logs,
+ikke til applikasjonsloggen:
+
+```kotlin
+loggError("Klarte ikke hente snapshot", exception, "identitetsnummer" to identitetsnummer)
+```

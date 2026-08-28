@@ -1,0 +1,16 @@
+[versions]
+sasGradlePlugins = "20260807.0944"
+tbd-libs = "20260826.1318"
+
+[libraries]
+kotlinx-coroutines-slf4j = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0"
+logback-classic = "ch.qos.logback:logback-classic:1.6.3"
+logstash-logback-encoder = "net.logstash.logback:logstash-logback-encoder:8.1"
+slf4jApi = "org.slf4j:slf4j-api:2.0.18"
+tbd-libs-test = { module = "com.github.navikt.tbd-libs:test", version.ref = "tbd-libs" }
+
+[bundles]
+
+[plugins]
+sas-kotlin = { id = "no.nav.helse.sas.sas-kotlin", version.ref = "sasGradlePlugins" }
+sas-root = { id = "no.nav.helse.sas.sas-root", version.ref = "sasGradlePlugins" }
