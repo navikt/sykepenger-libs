@@ -1,6 +1,7 @@
 rootProject.name = "sykepenger-libs"
 include(
     "logging",
+    "testing",
 )
 
 // Sett opp repositories basert på om vi kjører i CI eller ikke
