@@ -33,7 +33,7 @@ jobs:
         run: |
           export VERSJON=$(TZ=Europe/Oslo date +%Y%m%d.%H%M)
           echo "## Versjon $VERSJON" >> "$GITHUB_STEP_SUMMARY"
-          echo "versjon=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "versjon=$VERSJON" >> "$GITHUB_OUTPUT"
 
       - name: gradlew build
         env:
