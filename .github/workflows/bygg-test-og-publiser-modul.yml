@@ -46,3 +46,17 @@ jobs:
           ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew --build-cache -Pversion="$VERSJON" ":$MODUL:publish"
+
+      - name: Oppsummering
+        env:
+          MODUL: ${{ inputs.modul }}
+          VERSJON: ${{ steps.versjon.outputs.versjon }}
+        run: |
+          echo "::notice title=Publisert versjon::$MODUL $VERSJON"
+          {
+            echo "## Publisert"
+            echo ""
+            echo "| Modul | Versjon |"
+            echo "| --- | --- |"
+            echo "| \`$MODUL\` | \`$VERSJON\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
