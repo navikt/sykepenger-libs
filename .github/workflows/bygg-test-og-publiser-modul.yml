@@ -31,7 +31,7 @@ jobs:
       - name: Generer versjon
         id: versjon
         run: |
-          VERSJON=$(TZ=Europe/Oslo date +%Y%m%d.%H%M)
+          export VERSJON=$(TZ=Europe/Oslo date +%Y%m%d.%H%M)
           echo "## Versjon $VERSJON" >> "$GITHUB_STEP_SUMMARY"
           echo "versjon=$VERSION" >> "$GITHUB_OUTPUT"
 
