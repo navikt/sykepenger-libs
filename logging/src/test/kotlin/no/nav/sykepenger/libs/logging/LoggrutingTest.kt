@@ -41,6 +41,111 @@ class LoggrutingTest {
     }
 
     @Test
+    fun `en NavngittLogger sender meldingen til begge mål, men detaljene bare til team-logs`() {
+        val captured =
+            captureLogEvents {
+                navngittLogger("no.nav.helse.EnNavngittLogger").warn("en melding", "detalj" to "verdi", "tom" to null)
+            }
+
+        assertContentEquals(listOf("en melding"), captured.navLogs.messages())
+        assertContentEquals(listOf("en melding - detalj: \"verdi\" tom: null"), captured.teamLogs.messages())
+    }
+
+    @Test
+    fun `en NavngittLogger sender stacktracen bare til team-logs`() {
+        val captured =
+            captureLogEvents {
+                navngittLogger("no.nav.helse.EnNavngittLogger").error("en melding", RuntimeException("noe gikk galt"))
+            }
+
+        assertEquals(1, captured.navLogs.size)
+        assertFalse(captured.navLogs.single().has("stack_trace"))
+        assertTrue(
+            captured.teamLogs
+                .single()["stack_trace"]
+                .asString()
+                .contains("noe gikk galt"),
+        )
+    }
+
+    @Test
+    fun `en NavngittLogger logger under navnet den ble opprettet med`() {
+        val captured = captureLogEvents { navngittLogger("no.nav.helse.EnNavngittLogger").info("en melding") }
+
+        assertEquals("no.nav.helse.EnNavngittLogger", captured.navLogs.single()["logger_name"].asString())
+        assertEquals("no.nav.helse.EnNavngittLogger", captured.teamLogs.single()["logger_name"].asString())
+    }
+
+    @Test
+    fun `en NavngittLogger som heter tjenestekall havner bare i team-logs`() {
+        val captured = captureLogEvents { navngittLogger("tjenestekall").info("et tjenestekall", "detalj" to "verdi") }
+
+        assertContentEquals(emptyList(), captured.navLogs.messages())
+        assertContentEquals(listOf("et tjenestekall - detalj: \"verdi\""), captured.teamLogs.messages())
+    }
+
+    @Test
+    fun `undernivåer av tjenestekall havner bare i team-logs også for en NavngittLogger`() {
+        val captured = captureLogEvents { navngittLogger("tjenestekall.heihei").info("et tjenestekall") }
+
+        assertContentEquals(emptyList(), captured.navLogs.messages())
+        assertContentEquals(listOf("et tjenestekall"), captured.teamLogs.messages())
+    }
+
+    @Test
+    fun `MDC-felter som kan inneholde persondata havner bare i team-logs også for en NavngittLogger`() {
+        val captured =
+            captureLogEvents {
+                MDC.putCloseable("callId", "en-call-id").use {
+                    medMdc(MdcKey.VEDTAKSPERIODE_ID to "en-vedtaksperiode-id") {
+                        navngittLogger("no.nav.helse.EnNavngittLogger").info("en melding")
+                    }
+                }
+            }
+
+        val navLogs = captured.navLogs.single()
+        assertEquals("en-call-id", navLogs["callId"].asString())
+        assertFalse(navLogs.has("vedtaksperiodeId"))
+
+        val teamLogs = captured.teamLogs.single()
+        assertEquals("en-call-id", teamLogs["callId"].asString())
+        assertEquals("en-vedtaksperiode-id", teamLogs["vedtaksperiodeId"].asString())
+    }
+
+    @Test
+    fun `standardnivåene gjelder også for en NavngittLogger`() {
+        val captured =
+            captureLogEvents {
+                navngittLogger("no.nav.helse.EnNavngittLogger").debug("under standardterskelen")
+                navngittLogger("no.nav.helse.EnNavngittLogger").info("over standardterskelen")
+                navngittLogger("tjenestekall").debug("under standardterskelen for tjenestekall")
+                navngittLogger("tjenestekall").info("over standardterskelen for tjenestekall")
+            }
+
+        assertContentEquals(listOf("over standardterskelen"), captured.navLogs.messages())
+        assertContentEquals(
+            listOf("over standardterskelen", "over standardterskelen for tjenestekall"),
+            captured.teamLogs.messages(),
+        )
+    }
+
+    @Test
+    fun `nivåene fra tjenestens egne properties gjelder også for en NavngittLogger`() {
+        val captured =
+            captureLogEvents("logback-base-med-overstyringer.xml") {
+                navngittLogger("no.nav.helse.EnNavngittLogger").info("under terskelen for root")
+                navngittLogger("no.nav.helse.EnNavngittLogger").error("over terskelen for root")
+                navngittLogger("tjenestekall").trace("under terskelen for root, men ikke for tjenestekall")
+            }
+
+        assertContentEquals(listOf("over terskelen for root"), captured.navLogs.messages())
+        assertContentEquals(
+            listOf("over terskelen for root", "under terskelen for root, men ikke for tjenestekall"),
+            captured.teamLogs.messages(),
+        )
+    }
+
+    @Test
     fun `en vanlig slf4j-logger havner i begge mål`() {
         val captured =
             captureLogEvents { LoggerFactory.getLogger("no.nav.helse.EnTredjepart").info("fra et rammeverk") }

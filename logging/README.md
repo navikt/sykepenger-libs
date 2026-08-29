@@ -85,22 +85,46 @@ Se [KDoc-en i `MdcKey`](src/main/kotlin/no/nav/sykepenger/libs/logging/MdcKey.kt
 
 ### Logging
 
+Biblioteket innfører loggfunksjoner som extension-funksjoner som kan brukes på et hvilket som helst objekt. Typen man
+benytter funksjonen på blir til logger-navnet.
+
+Det betyr at i en hvilket som helst klasse kan man enkelt logge med en av extension-funksjonene, uten noe mer oppsett:
+
+```kotlin
+class MinKlasse {
+    fun gjørNoeSpennende() {
+        loggInfo("Dette var veldig spennende!")
+    }
+}
+```
+
+Der det ikke finnes noe objekt å henge loggingen på — for eksempel i en funksjon som er definert utenfor en klasse i en
+Kotlin-fil, eller i andre statiske sammenhenger — bruker man i stedet en `NavngittLogger`. Den opprettes med
+`navngittLogger(...)`, og navnet man oppgir blir logger-navnet:
+
+```kotlin
+private val logger = navngittLogger("no.nav.helse.ønskeliste.helpers")
+
+fun inspiserØnskeliste(ønskeliste: Ønskeliste) {
+    logger.info("Ønskelisten så fin ut")
+}
+```
+
 Det finnes fem sett med funksjoner, ett for hvert loglevel:
 
-| Funksjon      | Loglevel |
-|---------------|----------|
-| `loggError()` | `ERROR`  |
-| `loggWarn()`  | `WARN`   |
-| `loggInfo()`  | `INFO`   |
-| `loggDebug()` | `DEBUG`  |
-| `loggTrace()` | `TRACE`  |
+| Extension-funksjon | `NavngittLogger`-metode | Loglevel |
+|--------------------|-------------------------|----------|
+| `loggError()`      | `error()`               | `ERROR`  |
+| `loggWarn()`       | `warn()`                | `WARN`   |
+| `loggInfo()`       | `info()`                | `INFO`   |
+| `loggDebug()`      | `debug()`               | `DEBUG`  |
+| `loggTrace()`      | `trace()`               | `TRACE`  |
 
-Alle funksjonene er extension-funksjoner som importeres fra pakken `no.nav.sykepenger.libs.logging`, og som kan brukes
-på et hvilket som helst objekt. Typen man benytter funksjonen på blir til logger-navnet.
+Hver funksjon finnes i to varianter, én med en throwable og én uten. Throwable'n blir til stack trace i Team Logs.
 
-Loggefunksjonene tar en melding og et valgfritt sett med key/value-par med detaljer. Alle meldinger logges til både
-nav-logs og Team Logs, men det er kun den meldingen som går til Team Logs som har med detaljene. Dette forhindrer at
-persondata legges ut i nav-logs, og tillater samtidig at den kan logges til Team Logs.
+Loggefunksjonene tar en melding og et valgfritt sett med key/value-par med detaljer til Team Logs. Alle meldinger logges
+til både nav-logs og Team Logs, men det er kun den meldingen som går til Team Logs som har med detaljene. Dette
+forhindrer at persondata legges ut i nav-logs, og tillater samtidig at den kan logges til Team Logs.
 
 Eksempel:
 

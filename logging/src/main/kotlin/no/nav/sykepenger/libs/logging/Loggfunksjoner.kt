@@ -1,5 +1,6 @@
 package no.nav.sykepenger.libs.logging
 
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
@@ -81,9 +82,6 @@ inline fun <reified T : Any> T.loggTrace(
     loggMedDetaljer(T::class, Level.TRACE, melding, teamLogsDetaljer.toList(), throwable)
 }
 
-internal val NOT_NAV_LOGS_MARKER: Marker = MarkerFactory.getMarker("NOT_NAV_LOGS")
-internal val NOT_TEAM_LOGS_MARKER: Marker = MarkerFactory.getMarker("NOT_TEAM_LOGS")
-
 fun <T : Any> loggMedDetaljer(
     kClass: KClass<T>,
     level: Level,
@@ -91,8 +89,25 @@ fun <T : Any> loggMedDetaljer(
     teamLogsDetaljer: List<Pair<String, String?>>,
     throwable: Throwable? = null,
 ) {
-    val logger = LoggerFactory.getLogger(kClass.java)
+    loggMedDetaljer(
+        logger = LoggerFactory.getLogger(kClass.java),
+        level = level,
+        melding = melding,
+        teamLogsDetaljer = teamLogsDetaljer,
+        throwable = throwable
+    )
+}
 
+internal val NOT_NAV_LOGS_MARKER: Marker = MarkerFactory.getMarker("NOT_NAV_LOGS")
+internal val NOT_TEAM_LOGS_MARKER: Marker = MarkerFactory.getMarker("NOT_TEAM_LOGS")
+
+internal fun loggMedDetaljer(
+    logger: Logger,
+    level: Level,
+    melding: String,
+    teamLogsDetaljer: List<Pair<String, String?>>,
+    throwable: Throwable? = null
+) {
     // Logg uten detaljer og stacktrace til nav-logs
     logger
         .atLevel(level)
