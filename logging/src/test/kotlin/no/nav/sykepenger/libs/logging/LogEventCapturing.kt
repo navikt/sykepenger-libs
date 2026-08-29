@@ -25,11 +25,12 @@ internal fun captureLogEvents(
     logbackXmlResourceName: String = "logback-base-uten-overstyringer.xml",
     block: () -> Unit,
 ): CapturedLogEvents {
-    val (capturedTeamLogs, capturedStdout) = captureWithMockTeamLogs { mockTeamLogsHostnameAndPort ->
-        withLogbackConfiguration(logbackXmlResourceName, mockTeamLogsHostnameAndPort) {
-            captureStdout(block)
+    val (capturedTeamLogs, capturedStdout) =
+        captureWithMockTeamLogs { mockTeamLogsHostnameAndPort ->
+            withLogbackConfiguration(logbackXmlResourceName, mockTeamLogsHostnameAndPort) {
+                captureStdout(block)
+            }
         }
-    }
     return CapturedLogEvents(
         navLogs = capturedStdout.linesToJsonNodes(),
         teamLogs = capturedTeamLogs.linesToJsonNodes(),
@@ -56,7 +57,7 @@ private fun <T> captureWithMockTeamLogs(block: (mockTeamLogsHostnameAndPort: Str
 private fun <T> withLogbackConfiguration(
     logbackXmlResourceName: String,
     teamLogsDestination: String,
-    block: () -> T
+    block: () -> T,
 ): T {
     val context = getILoggerFactory() as LoggerContext
     return try {
@@ -103,4 +104,3 @@ private fun String.linesToJsonNodes(): List<JsonNode> =
     lines()
         .filter { it.isNotBlank() }
         .map { objectMapper.readTree(it) }
-

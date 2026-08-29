@@ -94,7 +94,7 @@ fun <T : Any> loggMedDetaljer(
         level = level,
         melding = melding,
         teamLogsDetaljer = teamLogsDetaljer,
-        throwable = throwable
+        throwable = throwable,
     )
 }
 
@@ -106,7 +106,7 @@ internal fun loggMedDetaljer(
     level: Level,
     melding: String,
     teamLogsDetaljer: List<Pair<String, String?>>,
-    throwable: Throwable? = null
+    throwable: Throwable? = null,
 ) {
     // Logg uten detaljer og stacktrace til nav-logs
     logger

@@ -6,7 +6,9 @@ import org.slf4j.event.Level
 
 fun navngittLogger(loggerNavn: String) = NavngittLogger(loggerNavn)
 
-class NavngittLogger(loggerNavn: String) {
+class NavngittLogger(
+    loggerNavn: String,
+) {
     private val logger: Logger = LoggerFactory.getLogger(loggerNavn)
 
     fun error(
