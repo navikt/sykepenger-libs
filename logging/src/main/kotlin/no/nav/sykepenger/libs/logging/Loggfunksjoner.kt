@@ -1,6 +1,8 @@
 package no.nav.sykepenger.libs.logging
 
 import org.slf4j.LoggerFactory
+import org.slf4j.Marker
+import org.slf4j.MarkerFactory
 import org.slf4j.event.Level
 import kotlin.reflect.KClass
 
@@ -79,6 +81,9 @@ inline fun <reified T : Any> T.loggTrace(
     loggMedDetaljer(T::class, Level.TRACE, melding, teamLogsDetaljer.toList(), throwable)
 }
 
+internal val NOT_NAV_LOGS_MARKER: Marker = MarkerFactory.getMarker("NOT_NAV_LOGS")
+internal val NOT_TEAM_LOGS_MARKER: Marker = MarkerFactory.getMarker("NOT_TEAM_LOGS")
+
 fun <T : Any> loggMedDetaljer(
     kClass: KClass<T>,
     level: Level,
@@ -88,17 +93,18 @@ fun <T : Any> loggMedDetaljer(
 ) {
     val logger = LoggerFactory.getLogger(kClass.java)
 
-    // Logg uten detaljer til STDOUT (fordi det ikke har marker)
+    // Logg uten detaljer og stacktrace til nav-logs
     logger
         .atLevel(level)
         .setMessage(melding)
+        .addMarker(NOT_TEAM_LOGS_MARKER)
         .log()
 
-    // Logg med detaljer til team logs (ved å sette marker)
+    // Logg med detaljer og stacktrace til Team Logs
     logger
         .atLevel(level)
-        .addMarker(TEAM_LOGS_MARKER)
-        .setMessage(melding.medTeamLogsDetaljer(teamLogsDetaljer))
+        .setMessage(melding.medTeamLogsDetaljer(teamLogsDetaljer = teamLogsDetaljer))
+        .addMarker(NOT_NAV_LOGS_MARKER)
         .also { if (throwable != null) it.setCause(throwable) }
         .log()
 }

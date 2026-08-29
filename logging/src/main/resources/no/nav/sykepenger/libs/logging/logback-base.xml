@@ -5,17 +5,21 @@
     og hvordan oppsettet kan overstyres og utvides.
 -->
 <included>
-    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="nav-logs" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <!-- Inkluder bare spesifikke MDC-felter, ettersom noen MDC-felter kan inneholde personinformasjon -->
             <includeMdcKeyName>callId</includeMdcKeyName>
             <includeMdcKeyName>trace_flags</includeMdcKeyName>
             <includeMdcKeyName>span_id</includeMdcKeyName>
             <includeMdcKeyName>trace_id</includeMdcKeyName>
+            <fieldNames>
+                <!-- Stacktracer kan inneholde personinformasjon, og skal derfor bare til Team Logs -->
+                <stackTrace>[ignore]</stackTrace>
+            </fieldNames>
         </encoder>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
-                <marker>TEAM_LOGS</marker>
+                <marker>NOT_NAV_LOGS</marker>
             </evaluator>
             <OnMatch>DENY</OnMatch>
             <OnMismatch>ACCEPT</OnMismatch>
@@ -23,14 +27,20 @@
     </appender>
 
     <appender name="team-logs" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>team-logs.nais-system:5170</destination>
+        <destination>${TEAM_LOGS_DESTINATION:-team-logs.nais-system:5170}</destination>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>
                 {"google_cloud_project":"${GOOGLE_CLOUD_PROJECT}","nais_namespace_name":"${NAIS_NAMESPACE}","nais_pod_name":"${NAIS_POD_NAME}","nais_container_name":"${NAIS_APP_NAME}"}
             </customFields>
             <includeContext>false</includeContext>
         </encoder>
-        <filter class="no.nav.sykepenger.libs.logging.TeamLogsFilter"/>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>NOT_TEAM_LOGS</marker>
+            </evaluator>
+            <OnMatch>DENY</OnMatch>
+            <OnMismatch>ACCEPT</OnMismatch>
+        </filter>
     </appender>
 
     <logger name="tjenestekall" level="${TJENESTEKALL_LEVEL:-INFO}" additivity="false">
@@ -38,7 +48,7 @@
     </logger>
 
     <root level="${ROOT_LOG_LEVEL:-INFO}">
-        <appender-ref ref="STDOUT_JSON"/>
+        <appender-ref ref="nav-logs"/>
         <appender-ref ref="team-logs"/>
     </root>
 </included>

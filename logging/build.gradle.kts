@@ -9,4 +9,6 @@ dependencies {
     api(libs.logstash.logback.encoder)
 
     testImplementation(kotlin("test"))
+    testImplementation(platform(libs.jackson3.bom))
+    testImplementation("tools.jackson.module:jackson-module-kotlin")
 }

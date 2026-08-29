@@ -1,7 +1,7 @@
 # sykepenger-libs - logging
 
 Felles loggoppsett og logghjelpere for sykepengetjenestene: et delt logback-oppsett som inkluderes fra classpath,
-Kotlin-funksjoner for å logge til både applikasjonslogg og Team Logs, og MDC-hjelpere.
+Kotlin-funksjoner for å logge til både nav-logs og Team Logs, og MDC-hjelpere.
 
 ## Hvordan bruker jeg dette?
 
@@ -15,15 +15,14 @@ dependencies {
 
 #### Viktig!
 
-Dette loggebiblioteket sørger for riktig logback-oppsett for Team Logs, men annet oppsett for å nå Team Logs (f. eks i
-Nais-manifestet) må gjøres selv i hvert tjeneste.
-Se https://doc.nais.io/observability/logging/how-to/team-logs/#naisyaml-configuration .
+Dette loggebiblioteket sørger for riktig logback-oppsett for Team Logs og nav-logs, men annet oppsett (f. eks i
+Nais-manifestet) må gjøres selv i hvert tjeneste. Se Nais-dokumentasjonen for nødvendig oppsett
+for [Team Logs](https://doc.nais.io/observability/logging/how-to/team-logs/#naisyaml-configuration)
+og for [Nav-logs](https://docs.nais.io/observability/logging/how-to/nav-logs-dashboards/#enable-logging-to-nav-logs)
 
 ### logback.xml-oppsett
 
 Biblioteket har et felles logback-oppsett som det er meningen man skal inkludere i hver tjenestes `logback.xml`.
-Inkludert er rotoppsett, og oppsett mot Team Logs, som sørger for at MDC-felter (mulig personinfo) ikke lekker ut til
-OpenSearch, men bare kommer til Team Logs.
 
 Eksempel på en minimal, fullverdig `src/main/resources/logback.xml`:
 
@@ -38,10 +37,10 @@ Eksempel på en minimal, fullverdig `src/main/resources/logback.xml`:
 
 Deler av standardoppsettet er valgfritt overstyrbart ved å legge tilhørende `<property>` **før** `<include>`:
 
-| Parameter            | Standard | Beskrivelse                      |
-|----------------------|----------|----------------------------------|
-| `TJENESTEKALL_LEVEL` | `INFO`   | Nivå for `tjenestekall`-loggeren |
-| `ROOT_LOG_LEVEL`     | `INFO`   | Nivå for root-loggeren           |
+| Parameter            | Default | Beskrivelse                                                     |
+|----------------------|---------|-----------------------------------------------------------------|
+| `TJENESTEKALL_LEVEL` | `INFO`  | Nivå for `tjenestekall`-loggeren                                |
+| `ROOT_LOG_LEVEL`     | `INFO`  | Nivå for root-loggeren (all logging som ikke overstyres ellers) |
 
 Eksempel:
 
@@ -77,8 +76,10 @@ Loggingen som utføres både rett i blokken og nedover i kallhierarkiet vil da i
 
 Nøklene til MDC'en er ikke fritekst, men er definert i enumen
 [`MdcKey`](src/main/kotlin/no/nav/sykepenger/libs/logging/MdcKey.kt) — det felles settet med nøkler som kan settes på
-MDC'en av sykepengetjenestene. Fordi alle tjenestene henter nøklene fra samme sted, heter det samme begrepet det samme
-overalt, slik at et søk i Team Logs faktisk korrelerer treff på tvers av tjenestene.
+MDC'en av sykepengetjenestene.
+
+Fordi alle tjenestene henter nøklene fra samme sted, heter det samme begrepet det samme overalt, slik at et søk i Team
+Logs faktisk korrelerer treff på tvers av tjenestene.
 
 Se [KDoc-en i `MdcKey`](src/main/kotlin/no/nav/sykepenger/libs/logging/MdcKey.kt) for mer informasjon.
 
@@ -98,8 +99,8 @@ Alle funksjonene er extension-funksjoner som importeres fra pakken `no.nav.sykep
 på et hvilket som helst objekt. Typen man benytter funksjonen på blir til logger-navnet.
 
 Loggefunksjonene tar en melding og et valgfritt sett med key/value-par med detaljer. Alle meldinger logges til både
-OpenSearch og Team Logs, men det er kun den meldingen som går til team logs som har med detaljene. Dette forhindrer at
-persondata legger ut i OpenSearch, og tillater samtidig at den kan logges til Team Logs.
+nav-logs og Team Logs, men det er kun den meldingen som går til Team Logs som har med detaljene. Dette forhindrer at
+persondata legges ut i nav-logs, og tillater samtidig at den kan logges til Team Logs.
 
 Eksempel:
 
@@ -111,15 +112,24 @@ loggWarn(
 )
 ```
 
-OpenSearch får `Fikk feil tilbake fra HentØnskeliste-tjenesten`, mens Team Logs får
+nav-logs får `Fikk feil tilbake fra HentØnskeliste-tjenesten`, mens Team Logs får
 `Fikk feil tilbake fra HentØnskeliste-tjenesten - httpStatusCode: "…" responseBody: "…"`.
 
 Detaljverdiene er `String?`, slik at det er tydelig hva som faktisk havner i loggen — konverter selv med `toString()`
 der det trengs. `null` skrives som `null`, uten anførselstegn.
 
 Alle funksjonene har en variant som tar en `Throwable` som andre argument. Stacktracen følger bare med til Team Logs,
-ikke til applikasjonsloggen:
+ikke til nav-logs:
 
 ```kotlin
 loggError("Klarte ikke hente snapshot", exception, "identitetsnummer" to identitetsnummer)
 ```
+
+### Logging fra rammeverk
+
+Rammeverk og tredjepartsbiblioteker logger gjennom sin egen SLF4J-`Logger`, og kjenner verken loggefunksjonene eller
+oppsettet vårt. Slik logging vil havne både i nav-logs og i Team Logs. Stacktracen holdes likevel tilbake fra nav-logs,
+og MDC-feltene likeså. Man trenger derfor ikke gjøre noe spesielt for å få med seg logging fra for eksempel Ktor eller
+Kafka-klienten begge steder.
+
+Stacktracer regnes som mulig persondata, og skrives derfor aldri til nav-logs — uansett hvem som logger dem.
