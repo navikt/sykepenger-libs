@@ -29,7 +29,7 @@ workflowen `.github/workflows/bygg-test-og-publiser-modul.yml`.
 
 ## Legge til en ny modul
 
-1. Lag en katalog med modulnavnet, med en `build.gradle.kts` som bruker `no.nav.helse.sas.sas-kotlin`-pluginen.
+1. Lag en katalog med modulnavnet, med en `build.gradle.kts` som bruker `no.nav.sykepenger.kotlin`-pluginen.
 2. Legg modulen til i `include(...)` i `settings.gradle.kts`.
 3. Kopier `.github/workflows/main-logging.yml` til `.github/workflows/main-<modul>.yml`, og bytt ut `logging` med
    navnet på den nye modulen (i `name`, i `paths` og i `with.modul`).

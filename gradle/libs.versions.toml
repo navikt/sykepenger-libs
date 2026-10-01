@@ -1,6 +1,5 @@
 [versions]
-sasGradlePlugins = "20260930.1152"
-tbd-libs = "20260930.1309"
+sykepengerGradlePlugins = "20261001.1657"
 
 [libraries]
 jackson3-bom = "tools.jackson:jackson-bom:3.2.3"
@@ -8,10 +7,9 @@ kotlinx-coroutines-slf4j = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.
 logback-classic = "ch.qos.logback:logback-classic:1.6.3"
 logstash-logback-encoder = "net.logstash.logback:logstash-logback-encoder:9.0"
 slf4jApi = "org.slf4j:slf4j-api:2.0.20"
-tbd-libs-test = { module = "com.github.navikt.tbd-libs:test", version.ref = "tbd-libs" }
 
 [bundles]
 
 [plugins]
-sas-kotlin = { id = "no.nav.helse.sas.sas-kotlin", version.ref = "sasGradlePlugins" }
-sas-root = { id = "no.nav.helse.sas.sas-root", version.ref = "sasGradlePlugins" }
+sykepenger-kotlin = { id = "no.nav.sykepenger.kotlin", version.ref = "sykepengerGradlePlugins" }
+sykepenger-root = { id = "no.nav.sykepenger.root", version.ref = "sykepengerGradlePlugins" }
