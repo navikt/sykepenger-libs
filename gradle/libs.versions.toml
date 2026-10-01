@@ -1,5 +1,5 @@
 [versions]
-sykepengerGradlePlugins = "20261001.1657"
+sykepengerGradlePlugins = "20261001.1810"
 
 [libraries]
 jackson3-bom = "tools.jackson:jackson-bom:3.2.3"
