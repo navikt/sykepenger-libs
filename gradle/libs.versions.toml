@@ -1,6 +1,6 @@
 [versions]
 sasGradlePlugins = "20260930.1152"
-tbd-libs = "20260917.2152"
+tbd-libs = "20260930.1309"
 
 [libraries]
 jackson3-bom = "tools.jackson:jackson-bom:3.2.3"
