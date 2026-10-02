@@ -13,9 +13,26 @@ permissions:
 jobs:
   bygg-og-test:
     name: Bygg og test
-    uses: navikt/sykepenger-github-workflows/.github/workflows/bygg-og-test-med-gradle.yml@77c349d62b631cf0fedc02278c68abd33bc8ea5b # v1.0.10
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: gradlew clean build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean build --build-cache
 
   dependency-review:
     name: Dependency review
