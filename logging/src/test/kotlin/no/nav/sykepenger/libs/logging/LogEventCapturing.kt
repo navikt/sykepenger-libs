@@ -12,6 +12,8 @@ import java.io.PrintStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -26,8 +28,10 @@ internal fun captureLogEvents(
     block: () -> Unit,
 ): CapturedLogEvents {
     val (capturedTeamLogs, capturedStdout) =
-        captureWithMockTeamLogs { mockTeamLogsHostnameAndPort ->
+        captureWithMockTeamLogs { mockTeamLogsHostnameAndPort, awaitTeamLogsConnection ->
             withLogbackConfiguration(logbackXmlResourceName, mockTeamLogsHostnameAndPort) {
+                // Team-logs-appenderen kobler til asynkront. Uten å vente kan konteksten stoppes før den har koblet til.
+                awaitTeamLogsConnection()
                 captureStdout(block)
             }
         }
@@ -37,16 +41,25 @@ internal fun captureLogEvents(
     )
 }
 
-private fun <T> captureWithMockTeamLogs(block: (mockTeamLogsHostnameAndPort: String) -> T): Pair<String, T> =
+private fun <T> captureWithMockTeamLogs(
+    block: (mockTeamLogsHostnameAndPort: String, awaitTeamLogsConnection: () -> Unit) -> T,
+): Pair<String, T> =
     ServerSocket(0, 1, InetAddress.getLoopbackAddress()).use { socket ->
         val capturedTeamLogsBytes = ByteArrayOutputStream()
+        val connectionAccepted = CountDownLatch(1)
         val teamLogsMockThread =
             thread(name = "team-logs-mock") {
-                socket.accept().use { forbindelse -> forbindelse.inputStream.copyTo(capturedTeamLogsBytes) }
+                socket.accept().use { forbindelse ->
+                    connectionAccepted.countDown()
+                    forbindelse.inputStream.copyTo(capturedTeamLogsBytes)
+                }
             }
         val mockTeamLogsHostnameAndPort = "localhost:${socket.localPort}"
+        val awaitTeamLogsConnection = {
+            assertTrue(connectionAccepted.await(10, TimeUnit.SECONDS), "Team-logs-appenderen koblet aldri til")
+        }
 
-        val blockOutput = block(mockTeamLogsHostnameAndPort)
+        val blockOutput = block(mockTeamLogsHostnameAndPort, awaitTeamLogsConnection)
 
         teamLogsMockThread.join(Duration.ofSeconds(10).toMillis())
         assertFalse(teamLogsMockThread.isAlive, "Forbindelsen mot team-logs ble aldri lukket")
