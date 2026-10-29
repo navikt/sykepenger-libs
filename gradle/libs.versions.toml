@@ -1,11 +1,15 @@
 [versions]
+ktor = "3.6.0"
 sykepengerGradlePlugins = "20261026.1611"
 
 [libraries]
 jackson3-bom = "tools.jackson:jackson-bom:3.2.4"
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 kotlinx-coroutines-slf4j = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0"
 logback-classic = "ch.qos.logback:logback-classic:1.6.5"
 logstash-logback-encoder = "net.logstash.logback:logstash-logback-encoder:9.0"
+mock-oauth2-server = "no.nav.security:mock-oauth2-server:6.1.2"
 slf4jApi = "org.slf4j:slf4j-api:2.0.20"
 
 [bundles]

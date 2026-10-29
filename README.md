@@ -5,10 +5,11 @@ eget artefakt, slik at tjenestene kan ta i bruk akkurat de bibliotekene de treng
 
 ## Moduler
 
-| Modul                          | Beskrivelse                                                                      |
-|--------------------------------|----------------------------------------------------------------------------------|
-| [`logging`](logging/README.md) | Felles logback-oppsett (Team Logs / OpenSearch), loggefunksjoner, og MDC-oppsett |
-| [`testing`](testing/README.md) | Hjelpemidler til testing - assertions og testdatagenerering                      |
+| Modul                              | Beskrivelse                                                                      |
+|------------------------------------|----------------------------------------------------------------------------------|
+| [`ktor-auth`](ktor-auth/README.md) | Ktor-autentisering av saksbehandlere med Azure AD-token og Entra-tilgangsgrupper |
+| [`logging`](logging/README.md)     | Felles logback-oppsett (Team Logs / OpenSearch), loggefunksjoner, og MDC-oppsett |
+| [`testing`](testing/README.md)     | Hjelpemidler til testing - assertions og testdatagenerering                      |
 
 Se den enkelte modulens README (linket til i tabellen over) for hvordan den brukes.
 
