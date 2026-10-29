@@ -1,8 +1,8 @@
 [versions]
 flyway = "13.11.1"
 ktor = "3.6.0"
-sykepengerGradlePlugins = "20261026.1611"
-tbd-libs = "20261013.1613"
+sykepengerGradlePlugins = "20261029.1825"
+tbd-libs = "20261029.1800"
 testcontainers = "2.0.5"
 
 [libraries]
