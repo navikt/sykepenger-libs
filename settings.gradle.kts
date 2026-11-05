@@ -1,6 +1,7 @@
 rootProject.name = "sykepenger-libs"
 include(
     "ktor-auth",
+    "leader-election",
     "logging",
     "postgres",
     "testing",

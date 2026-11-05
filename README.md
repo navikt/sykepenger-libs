@@ -8,6 +8,7 @@ eget artefakt, slik at tjenestene kan ta i bruk akkurat de bibliotekene de treng
 | Modul                              | Beskrivelse                                                                      |
 |------------------------------------|----------------------------------------------------------------------------------|
 | [`ktor-auth`](ktor-auth/README.md) | Ktor-autentisering av saksbehandlere med Azure AD-token og Entra-tilgangsgrupper |
+| [`leader-election`](leader-election/README.md) | Leader election med SSE fra Nais-elector og styring av oppstart og stopp |
 | [`logging`](logging/README.md)     | Felles logback-oppsett (Team Logs / OpenSearch), loggefunksjoner, og MDC-oppsett |
 | [`postgres`](postgres/README.md)   | Datasource, Flyway-migrering og testdatabase for Postgres i Nais-apper           |
 | [`testing`](testing/README.md)     | Hjelpemidler til testing - assertions og testdatagenerering                      |
