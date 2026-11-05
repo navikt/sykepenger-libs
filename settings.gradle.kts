@@ -3,6 +3,7 @@ include(
     "ktor-auth",
     "leader-election",
     "logging",
+    "outbox",
     "postgres",
     "testing",
 )

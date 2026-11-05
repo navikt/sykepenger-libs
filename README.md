@@ -10,6 +10,7 @@ tjenestene kan ta i bruk akkurat de bibliotekene de trenger.
 | [`ktor-auth`](ktor-auth/README.md) | Ktor-autentisering av saksbehandlere med Azure AD-token og Entra-tilgangsgrupper |
 | [`leader-election`](leader-election/README.md) | Leader election med SSE fra Nais-elector og styring av oppstart og stopp |
 | [`logging`](logging/README.md)     | Felles logback-oppsett (Team Logs / OpenSearch), loggefunksjoner, og MDC-oppsett |
+| [`outbox`](outbox/README.md)       | Outbox i Postgres som publiserer meldinger på rapiden fra poden som er leder     |
 | [`postgres`](postgres/README.md)   | Datasource, Flyway-migrering og testdatabase for Postgres i Nais-apper           |
 | [`testing`](testing/README.md)     | Hjelpemidler til testing - assertions og testdatagenerering                      |
 

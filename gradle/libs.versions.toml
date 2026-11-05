@@ -17,6 +17,8 @@ logstash-logback-encoder = "net.logstash.logback:logstash-logback-encoder:9.0"
 mock-oauth2-server = "no.nav.security:mock-oauth2-server:6.1.4"
 postgresql = "org.postgresql:postgresql:42.7.14"
 slf4jApi = "org.slf4j:slf4j-api:2.0.20"
+tbd-libs-rapids-and-rivers-api = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-api", version.ref = "tbd-libs" }
+tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbd-libs" }
 tbd-libs-naisful-postgres = { module = "com.github.navikt.tbd-libs:naisful-postgres", version.ref = "tbd-libs" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 
