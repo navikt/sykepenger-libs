@@ -1,6 +1,7 @@
 package no.nav.sykepenger.libs.outbox
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.sykepenger.libs.leaderelection.LeaderElection
 import no.nav.sykepenger.libs.postgres.TestDatabase
 import no.nav.sykepenger.libs.testing.testdata.lagIdentitetsnummer
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Timeout
 import java.io.File
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -19,6 +21,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Timeout(30)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -104,31 +107,44 @@ internal class OutboxPubliseringsjobbTest {
     @Test
     fun `lar meldingen ligge og prøver igjen ved neste poll når sendingen feiler`() {
         skrivITransaksjon(melding(nr = 1), melding(nr = 2), melding(nr = 3))
-        val rapid = SvikterPåPublisering(feilerPå = setOf(2))
-        val jobb = OutboxPubliseringsjobb(testDatabase.dataSource, rapid, LeaderElection { true })
+        val rapid = FalskRapid(feilerPåForsøk = setOf(2))
+        val jobb = jobb(rapid = rapid)
 
         jobb.publiserUpubliserte()
-
         assertEquals(listOf(1), rapid.sendteNr)
-        assertEquals(1, publiseringstidspunkter().count { it != null })
 
         jobb.publiserUpubliserte()
-
         assertEquals(listOf(1, 2, 3), rapid.sendteNr)
-        assertTrue(publiseringstidspunkter().all { it != null })
     }
 
     @Test
     fun `lar meldingen ligge når rapiden kaster under sending`() {
         skrivITransaksjon(melding(nr = 1))
-        val rapid = SvikterPåPublisering(feilerPå = setOf(1), kaster = true)
-        val jobb = OutboxPubliseringsjobb(testDatabase.dataSource, rapid, LeaderElection { true })
+        val rapid = FalskRapid(feilerPåForsøk = setOf(1), kasterVedFeil = true)
+        val jobb = jobb(rapid = rapid)
 
         jobb.publiserUpubliserte()
-        assertEquals(listOf(null), publiseringstidspunkter())
-
         jobb.publiserUpubliserte()
+
         assertEquals(listOf(1), rapid.sendteNr)
+    }
+
+    @Test
+    fun `venter ikke på seg selv når en feilet sending stopper rapiden`() {
+        skrivITransaksjon(melding(nr = 1))
+        val rapid = FalskRapid(feilerPåForsøk = setOf(1), stopperVedFeil = true)
+        val jobb = jobb(rapid = rapid, pollIntervall = 10.milliseconds)
+        rapid.register(jobb)
+
+        jobb.onStartup(rapid)
+        try {
+            ventTil { rapid.stoppetidVedFeil != null }
+        } finally {
+            jobb.onShutdownSignal(rapid)
+        }
+
+        assertTrue(rapid.stoppetidVedFeil!! < java.time.Duration.ofSeconds(1), "Stoppet etter ${rapid.stoppetidVedFeil}")
+        assertEquals(emptyList(), rapid.sendteNr)
     }
 
     @Test
@@ -151,14 +167,15 @@ internal class OutboxPubliseringsjobbTest {
         var ledersjekker = 0
 
         jobb(LeaderElection { ledersjekker++ == 0 }).publiserUpubliserte()
-
         assertEquals(listOf(1), publiserteNr())
-        assertEquals(1, publiseringstidspunkter().count { it != null })
+
+        jobb().publiserUpubliserte()
+        assertEquals(listOf(1, 2), publiserteNr())
     }
 
     @Test
     fun `starter polling ved oppstart og stopper ved nedstengning`() {
-        val jobb = OutboxPubliseringsjobb(testDatabase.dataSource, rapid, LeaderElection { true }, 10.milliseconds)
+        val jobb = jobb(pollIntervall = 10.milliseconds)
 
         jobb.onStartup(rapid)
         try {
@@ -176,29 +193,26 @@ internal class OutboxPubliseringsjobbTest {
     @Test
     fun `avviser pollintervall som ikke er positivt og endelig`() {
         for (intervall in listOf(Duration.ZERO, (-1).milliseconds, Duration.INFINITE)) {
-            assertFailsWith<IllegalArgumentException> {
-                OutboxPubliseringsjobb(testDatabase.dataSource, rapid, LeaderElection { true }, intervall)
-            }
+            assertFailsWith<IllegalArgumentException> { jobb(pollIntervall = intervall) }
         }
     }
 
     @Test
     fun `sender ikke en melding som en annen pod holder på å publisere`() {
         skrivITransaksjon(melding(nr = 1))
-        testDatabase.dataSource.connection.use { annenPod ->
-            annenPod.autoCommit = false
-            annenPod.createStatement().use {
-                it.executeQuery("SELECT id FROM outbox WHERE publisert_tidspunkt IS NULL ORDER BY sekvensnummer LIMIT 1 FOR UPDATE").close()
-            }
+        val gammelLeder = FalskRapid().apply { holdIgjenSending() }
+        val nyLeder = FalskRapid()
 
-            val jobb = thread { jobb().publiserUpubliserte() }
-            Thread.sleep(200)
-            annenPod.createStatement().use { it.executeUpdate("UPDATE outbox SET publisert_tidspunkt = now()") }
-            annenPod.commit()
-            jobb.join(5_000)
-        }
+        val gammel = thread { jobb(rapid = gammelLeder).publiserUpubliserte() }
+        check(gammelLeder.senderNå.await(5, TimeUnit.SECONDS))
+        val ny = thread { jobb(rapid = nyLeder).publiserUpubliserte() }
+        Thread.sleep(200)
+        gammelLeder.fullførSending()
+        gammel.join(5_000)
+        ny.join(5_000)
 
-        assertEquals(0, rapid.inspektør.size)
+        assertEquals(listOf(1), gammelLeder.sendteNr)
+        assertEquals(emptyList(), nyLeder.sendteNr)
     }
 
     private fun ventTil(betingelse: () -> Boolean) {
@@ -224,7 +238,11 @@ internal class OutboxPubliseringsjobbTest {
             }
         }
 
-    private fun jobb(leaderElection: LeaderElection = LeaderElection { true }) = OutboxPubliseringsjobb(testDatabase.dataSource, rapid, leaderElection)
+    private fun jobb(
+        leaderElection: LeaderElection = LeaderElection { true },
+        rapid: RapidsConnection = this.rapid,
+        pollIntervall: Duration = 0.5.seconds,
+    ) = OutboxPubliseringsjobb(testDatabase.dataSource, rapid, leaderElection, pollIntervall)
 
     private fun melding(nr: Int) = """{"@event_name":"test_hendelse","nr":$nr}"""
 

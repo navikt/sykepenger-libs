@@ -47,7 +47,7 @@ val leaderElection = NaisLeaderElection()
 rapidsConnection.register(OutboxPubliseringsjobb(dataSource, rapidsConnection, leaderElection))
 ```
 
-Husk å starte og stoppe `leaderElection` også, se [leader-election](../leader-election/README.md).
+Appen må også starte og stoppe `leaderElection`, se [leader-election](../leader-election/README.md).
 
 - Jobben starter ved `onStartup` og poller hvert halve sekund. Sett `pollIntervall` for å endre det.
 - Den publiserer bare når `leaderElection.isLeader()` er `true`, og sjekker det før hver melding.
@@ -55,6 +55,11 @@ Husk å starte og stoppe `leaderElection` også, se [leader-election](../leader-
   publiserer den med fødselsnummeret som nøkkel og setter `publisert_tidspunkt`.
 - Feiler sendingen, ruller jobben tilbake, logger feilen og stopper runden. Meldingen og de etter den blir liggende,
   og jobben prøver igjen ved neste poll. Rekkefølgen holdes.
+- Med `KafkaRapid` fra rapids-and-rivers stopper rapiden seg selv når en sending feiler. Da stopper også jobben,
+  og meldingen blir publisert når poden har startet på nytt.
+- Rekkefølgen følger `sekvensnummer`, altså rekkefølgen meldingene ble skrevet inn i tabellen, ikke rekkefølgen
+  transaksjonene ble committet i. Skriver to transaksjoner samtidig, kan en melding med høyere sekvensnummer bli
+  publisert før en med lavere.
 - Ved `onShutdownSignal` stopper jobben pollingen og venter til en påbegynt publisering er ferdig.
 
 ## Testing

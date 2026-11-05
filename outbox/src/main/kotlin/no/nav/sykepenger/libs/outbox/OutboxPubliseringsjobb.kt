@@ -26,19 +26,23 @@ class OutboxPubliseringsjobb(
 
     private var executor: ScheduledExecutorService? = null
 
+    @Volatile
+    private var publiseringstråd: Thread? = null
+
     @Synchronized
     override fun onStartup(rapidsConnection: RapidsConnection) {
         if (executor != null) return
         loggInfo("Starter publisering fra outboxen")
         executor =
             Executors
-                .newSingleThreadScheduledExecutor(
+                .newSingleThreadScheduledExecutor { oppgave ->
                     Thread
                         .ofPlatform()
                         .name("outbox-publisering")
                         .daemon()
-                        .factory(),
-                ).apply {
+                        .unstarted(oppgave)
+                        .also { publiseringstråd = it }
+                }.apply {
                     scheduleWithFixedDelay(
                         ::publiserUpubliserte,
                         0,
@@ -53,6 +57,8 @@ class OutboxPubliseringsjobb(
         val executor = executor ?: return
         loggInfo("Stopper publisering fra outboxen")
         executor.shutdown()
+        // KafkaRapid stopper seg selv fra publiseringstråden når en sending feiler. Da kan ikke tråden vente på seg selv.
+        if (Thread.currentThread() == publiseringstråd) return
         // Lar en påbegynt publisering bli ferdig, slik at meldingen ikke sendes uten å bli merket som publisert.
         if (!executor.awaitTermination(10, TimeUnit.SECONDS)) executor.shutdownNow()
     }
