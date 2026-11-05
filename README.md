@@ -1,7 +1,7 @@
 # sykepenger-libs
 
-Fellesbiblioteker for sykepengetjenestene. Hver modul i dette repoet er et selvstendig bibliotek som publiseres som sitt
-eget artefakt, slik at tjenestene kan ta i bruk akkurat de bibliotekene de trenger — uavhengig av hverandre.
+Fellesbiblioteker for sykepengetjenestene. Hver modul i dette repoet publiseres som sitt eget artefakt, slik at
+tjenestene kan ta i bruk akkurat de bibliotekene de trenger.
 
 ## Moduler
 
@@ -22,20 +22,19 @@ Bibliotekene publiseres til
 automatisk etter et vellykket bygg på `main`. Versjonsnummeret genereres fra byggetidspunktet på formen `ÅÅÅÅMMDD.TTMM`,
 f. eks. `20262808.1542`. Dette sikrer at nyere bygg alltid har høyere versjonsnummer.
 
-Hver modul publiseres uavhengig av de andre: modulen får bare ny versjon når den selv er endret, eller når
-fellesoppsettet for byggingen er endret (`build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, `gradle/`,
-`gradlew`). Endringer i dokumentasjon fører ikke til publisering.
+Alle modulene bygges, testes og publiseres samlet, med samme versjonsnummer, av workflowen
+`.github/workflows/main.yml`. Moduler som avhenger av hverandre, bruker prosjektavhengigheter i Gradle. En publisert
+modul peker derfor alltid på en versjon av de andre modulene som er bygget og publisert sammen med den. Endringer bare
+i dokumentasjon (`*.md`) fører ikke til publisering.
 
-Hver modul har derfor sin egen workflow, `.github/workflows/main-<modul>.yml`, som avgjør *når* modulen skal
-publiseres. Selve byggingen, testingen og publiseringen er lik for alle moduler, og ligger i den gjenbrukbare
-workflowen `.github/workflows/bygg-test-og-publiser-modul.yml`.
+Tjenestene kan fortsatt ta i bruk bare de modulene de trenger. Bruk samme versjon for alle modulene fra
+sykepenger-libs i en tjeneste.
 
 ## Legge til en ny modul
 
 1. Lag en katalog med modulnavnet, med en `build.gradle.kts` som bruker `no.nav.sykepenger.kotlin`-pluginen.
 2. Legg modulen til i `include(...)` i `settings.gradle.kts`.
-3. Kopier `.github/workflows/main-logging.yml` til `.github/workflows/main-<modul>.yml`, og bytt ut `logging` med
-   navnet på den nye modulen (i `name`, i `paths` og i `with.modul`).
+3. Bruk `project(":<modul>")` når modulen avhenger av en annen modul i repoet.
 4. Skriv en `README.md` for modulen, og legg den til i tabellen over moduler lenger opp.
 
 ## For Nav-ansatte

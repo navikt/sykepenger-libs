@@ -10,8 +10,8 @@ dependencies {
 }
 ```
 
-Modulen krever Java 25 og bruker `logging`-modulen. Den avhenger av en publisert versjon av `logging`,
-fordi modulene publiseres uavhengig av hverandre. Se [logging-oppsettet](../logging/README.md) for `logback.xml`.
+Modulen krever Java 25 og bruker `logging`-modulen med samme versjon. Se [logging-oppsettet](../logging/README.md)
+for `logback.xml`.
 
 ## Bruk i Nais
 
