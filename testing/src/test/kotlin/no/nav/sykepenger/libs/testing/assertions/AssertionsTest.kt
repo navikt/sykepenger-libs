@@ -24,6 +24,14 @@ class AssertionsTest {
     }
 
     @Test
+    fun `instant mindre enn n sekunder siden`() {
+        assertMindreEnnNSekunderSiden(sekunder = 10, actual = Instant.now().minusSeconds(5))
+        assertFailsWith<AssertionError> {
+            assertMindreEnnNSekunderSiden(sekunder = 10, actual = Instant.now().minusSeconds(20))
+        }
+    }
+
+    @Test
     fun `avrunder til mikrosekunder`() {
         val basis = LocalDateTime.of(2026, 1, 1, 12, 0, 0)
         assertEqualsByMicrosecond(basis.withNano(1_000_500), basis.withNano(1_001_000))

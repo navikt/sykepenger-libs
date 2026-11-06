@@ -29,6 +29,18 @@ fun assertMindreEnnNSekunderSiden(
     )
 }
 
+/** Sjekker at tidspunktet er høyst [sekunder] sekunder tilbake i tid. */
+fun assertMindreEnnNSekunderSiden(
+    sekunder: Int,
+    actual: Instant,
+) {
+    val now = Instant.now()
+    assertTrue(
+        actual = actual.isAfter(now.minusSeconds(sekunder.toLong())),
+        message = "Forventet at tidspunktet var innenfor $sekunder sekunder tilbake i tid (i forhold til nå: $now), men det var $actual",
+    )
+}
+
 /** Sjekker at tidspunktene er like, avrundet til nærmeste mikrosekund. */
 fun assertEqualsByMicrosecond(
     expected: LocalDateTime?,
