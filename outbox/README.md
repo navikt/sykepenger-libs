@@ -10,8 +10,8 @@ dependencies {
 }
 ```
 
-Modulen tar med seg `leader-election` og API-et til rapids-and-rivers. Bruk samme versjon for alle modulene fra
-sykepenger-libs.
+Modulen tar med seg en publisert versjon av `leader-election` og API-et til rapids-and-rivers.
+Modulene fra sykepenger-libs publiseres uavhengig av hverandre og trenger ikke å ha samme versjonsnummer.
 
 ## Skrive til outboxen
 

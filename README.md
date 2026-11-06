@@ -23,20 +23,27 @@ Bibliotekene publiseres til
 automatisk etter et vellykket bygg på `main`. Versjonsnummeret genereres fra byggetidspunktet på formen `ÅÅÅÅMMDD.TTMM`,
 f. eks. `20262808.1542`. Dette sikrer at nyere bygg alltid har høyere versjonsnummer.
 
-Alle modulene bygges, testes og publiseres samlet, med samme versjonsnummer, av workflowen
-`.github/workflows/main.yml`. Moduler som avhenger av hverandre, bruker prosjektavhengigheter i Gradle. En publisert
-modul peker derfor alltid på en versjon av de andre modulene som er bygget og publisert sammen med den. Endringer bare
-i dokumentasjon (`*.md`) fører ikke til publisering.
+Hver modul bygges, testes og publiseres uavhengig av de andre. Modulen får bare ny versjon når den selv er endret,
+eller når fellesoppsettet for byggingen er endret (`build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`,
+`gradle/`, `gradlew`, `gradlew.bat`). Endringer i modulens workflow eller den gjenbrukbare workflowen fører også til
+publisering. Endringer bare i dokumentasjon (`*.md`) fører ikke til publisering.
 
-Tjenestene kan fortsatt ta i bruk bare de modulene de trenger. Bruk samme versjon for alle modulene fra
-sykepenger-libs i en tjeneste.
+Hver modul har sin egen workflow, `.github/workflows/main-<modul>.yml`, som avgjør når modulen skal publiseres.
+Selve byggingen, testingen og publiseringen ligger i den gjenbrukbare workflowen
+`.github/workflows/bygg-test-og-publiser-modul.yml`. Du kan også starte en modulworkflow manuelt.
+
+Moduler som avhenger av andre moduler i repoet, bruker publiserte versjoner fra `gradle/libs.versions.toml`,
+også i tester. Oppdater avhengigheten etter at en ny versjon av modulen er publisert. Modulene trenger ikke å ha
+samme versjonsnummer i en tjeneste.
 
 ## Legge til en ny modul
 
 1. Lag en katalog med modulnavnet, med en `build.gradle.kts` som bruker `no.nav.sykepenger.kotlin`-pluginen.
 2. Legg modulen til i `include(...)` i `settings.gradle.kts`.
-3. Bruk `project(":<modul>")` når modulen avhenger av en annen modul i repoet.
-4. Skriv en `README.md` for modulen, og legg den til i tabellen over moduler lenger opp.
+3. Kopier `.github/workflows/main-logging.yml` til `.github/workflows/main-<modul>.yml`, og bytt ut `logging` med
+   navnet på den nye modulen (i `name`, i `paths` og i `with.modul`).
+4. Bruk en publisert versjon fra `gradle/libs.versions.toml` når modulen avhenger av en annen modul i repoet.
+5. Skriv en `README.md` for modulen, og legg den til i tabellen over moduler lenger opp.
 
 ## For Nav-ansatte
 

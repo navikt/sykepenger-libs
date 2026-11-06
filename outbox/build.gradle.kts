@@ -3,12 +3,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":leader-election"))
+    api(libs.sykepenger.libs.leader.election)
     api(libs.tbd.libs.rapids.and.rivers.api)
-    implementation(project(":logging"))
+    implementation(libs.sykepenger.libs.logging)
 
     testImplementation(kotlin("test"))
-    testImplementation(testFixtures(project(":postgres")))
-    testImplementation(project(":testing"))
+    testImplementation(testFixtures(libs.sykepenger.libs.postgres))
+    testImplementation(libs.sykepenger.libs.testing)
     testImplementation(libs.tbd.libs.rapids.and.rivers.test)
 }
