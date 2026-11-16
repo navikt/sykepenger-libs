@@ -7,6 +7,7 @@ tjenestene kan ta i bruk akkurat de bibliotekene de trenger.
 
 | Modul                              | Beskrivelse                                                                      |
 |------------------------------------|----------------------------------------------------------------------------------|
+| [`kafka-test`](kafka-test/README.md) | Kafka for integrasjonstester, som testcontainer eller ekstern Kafka |
 | [`ktor-auth`](ktor-auth/README.md) | Ktor-autentisering av saksbehandlere med Azure AD-token og Entra-tilgangsgrupper |
 | [`leader-election`](leader-election/README.md) | Leader election med SSE fra Nais-elector og styring av oppstart og stopp |
 | [`logging`](logging/README.md)     | Felles logback-oppsett (Team Logs / OpenSearch), loggefunksjoner, og MDC-oppsett |

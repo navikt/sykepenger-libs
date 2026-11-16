@@ -9,6 +9,7 @@ testcontainers = "2.0.5"
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hikaricp = "com.zaxxer:HikariCP:7.1.0"
 jackson3-bom = "tools.jackson:jackson-bom:3.2.4"
+kafka-clients = "org.apache.kafka:kafka-clients:4.4.0"
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 kotlinx-coroutines-slf4j = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0"
@@ -24,6 +25,7 @@ sykepenger-libs-testing = "no.nav.sykepenger.libs:testing:20261106.1106"
 tbd-libs-rapids-and-rivers-api = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-api", version.ref = "tbd-libs" }
 tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbd-libs" }
 tbd-libs-naisful-postgres = { module = "com.github.navikt.tbd-libs:naisful-postgres", version.ref = "tbd-libs" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 
 [bundles]

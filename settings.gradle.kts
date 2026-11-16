@@ -1,5 +1,6 @@
 rootProject.name = "sykepenger-libs"
 include(
+    "kafka-test",
     "ktor-auth",
     "leader-election",
     "logging",
