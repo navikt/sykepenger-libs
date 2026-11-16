@@ -31,12 +31,3 @@ dependencies {
     testImplementation("no.nav.sykepenger.libs:kafka-test:<versjon>")
 }
 ```
-
-Registrer variabelen som input til testene, så Gradle ikke hopper over dem når du bytter mellom container og ekstern
-Kafka:
-
-```kotlin
-tasks.test {
-    inputs.property("TEST_KAFKA_BOOTSTRAP_SERVERS", providers.environmentVariable("TEST_KAFKA_BOOTSTRAP_SERVERS").orElse(""))
-}
-```

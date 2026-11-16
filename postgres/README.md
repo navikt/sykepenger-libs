@@ -52,12 +52,3 @@ tilsvarende støtte i [`kafka-test`](../kafka-test/README.md).
 docker run -d --rm --name test-postgres -e POSTGRES_PASSWORD=test -p 5432:5432 postgres:18-alpine
 TEST_POSTGRES_JDBC_URL='jdbc:postgresql://localhost:5432/postgres?user=postgres&password=test' ./gradlew test
 ```
-
-Registrer variabelen som input til testene, så Gradle ikke hopper over dem når du bytter mellom container og ekstern
-Postgres:
-
-```kotlin
-tasks.test {
-    inputs.property("TEST_POSTGRES_JDBC_URL", providers.environmentVariable("TEST_POSTGRES_JDBC_URL").orElse(""))
-}
-```
