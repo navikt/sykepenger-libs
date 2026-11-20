@@ -9,6 +9,7 @@ tjenestene kan ta i bruk akkurat de bibliotekene de trenger.
 |------------------------------------|----------------------------------------------------------------------------------|
 | [`kafka-test`](kafka-test/README.md) | Kafka for integrasjonstester, som testcontainer eller ekstern Kafka |
 | [`ktor-auth`](ktor-auth/README.md) | Ktor-autentisering av saksbehandlere med Azure AD-token og Entra-tilgangsgrupper |
+| [`ktor-openapi`](ktor-openapi/README.md) | OpenAPI-spec og Swagger UI fra Ktor-rutene, og snapshot-test av specen |
 | [`leader-election`](leader-election/README.md) | Leader election med SSE fra Nais-elector og styring av oppstart og stopp |
 | [`logging`](logging/README.md)     | Felles logback-oppsett (Team Logs / OpenSearch), loggefunksjoner, og MDC-oppsett |
 | [`outbox`](outbox/README.md)       | Outbox i Postgres som publiserer meldinger på rapiden fra poden som er leder     |

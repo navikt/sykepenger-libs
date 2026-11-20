@@ -10,7 +10,10 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 hikaricp = "com.zaxxer:HikariCP:7.1.0"
 jackson3-bom = "tools.jackson:jackson-bom:3.3.0"
 kafka-clients = "org.apache.kafka:kafka-clients:4.4.0"
+ktor-openapi-schema-reflect = { module = "io.ktor:ktor-openapi-schema-reflect", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-routing-openapi = { module = "io.ktor:ktor-server-routing-openapi", version.ref = "ktor" }
+ktor-server-swagger = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 kotlinx-coroutines-slf4j = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0"
 logback-classic = "ch.qos.logback:logback-classic:1.6.6"
